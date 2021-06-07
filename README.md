@@ -1,3 +1,3 @@
 # stop-signal-task
 
-Autorzy: Debora, Milena, Paulina 
+Autorzy: Debora, Milena, Paulina    
