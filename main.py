@@ -101,8 +101,8 @@ mouse= event.Mouse (visible = True)
 
 clock = core.Clock()
 
-stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,2)),
-        "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,2))}
+stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,3)),
+        "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,3))}
 circle= visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None)
 fix = visual.TextStim(win=window, text="+", height=80)
 
@@ -111,13 +111,15 @@ fix = visual.TextStim(win=window, text="+", height=80)
 #inst2 = visual.TextStim(win=window, text="teraz eksperyment", height=20)
 #inst_end = visual.TextStim(win=window, text="koniec", height=20)
 
+#POCZĄTKOWE INFORMACJE
+show_info(window, 'instrukcja ogólna.txt', insert ='')
 
 # TRAINING
-show_info(window,'instrukcja.txt', insert='')
+show_info(window,'trening.txt', insert='')
 part_of_experiment(N_TRIALS_TRAIN, exp=False, fix=fix)
 
 # EXPERIMENT
-show_info(window, 'instrukcja.txt', insert='')
+show_info(window, 'czesc eksperymentalna.txt', insert='')
 part_of_experiment(N_TRAILS_EXP, exp=True, fix=fix)
 
 # THE END
