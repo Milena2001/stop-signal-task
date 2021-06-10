@@ -52,7 +52,7 @@ def show_info(window, file_name, insert=''):
     """
     msg = read_text_from_file(file_name, insert=insert)
     msg = visual.TextStim(window, color='black', text=msg,
-                          height=20, wrapWidth=SCREEN_RES['width'])
+                          height=20)
     msg.draw()
     window.flip()
     key = event.waitKeys(keyList=['f7', 'return', 'space', 'left', 'right'])
@@ -80,12 +80,16 @@ def part_of_experiment(n_trials, exp, fix):
         core.wait(1)
         window.flip()
         core.wait(1)
+        circle.setAutoDraw(True)
+        window.flip()
         stim[stim_type].draw()
         window.callOnFlip(clock.reset)
         window.flip()
         key = reactions(REACTION_KEYS)
         rt = clock.getTime()
         stim[stim_type].setAutoDraw(False)
+        window.flip()
+        circle.setAutoDraw(False)
         window.flip()
         acc = stim_type == key
         RESULTS.append([i+1, exp, acc, rt, stim_type, key])
@@ -97,29 +101,30 @@ mouse= event.Mouse (visible = True)
 
 clock = core.Clock()
 
-stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True),
-        "right": visual.TextStim(win=window, text="→", height=120, bold=True)}
-
+stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,2)),
+        "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,2))}
+circle= visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None)
 fix = visual.TextStim(win=window, text="+", height=80)
 
-inst1 = visual.TextStim(win=window, text="instrukcja", height=20)
-inst2 = visual.TextStim(win=window, text="teraz eksperyment", height=20)
-inst_end = visual.TextStim(win=window, text="koniec", height=20)
+
+#inst1 = visual.TextStim(win=window, text="instrukcja", height=20)
+#inst2 = visual.TextStim(win=window, text="teraz eksperyment", height=20)
+#inst_end = visual.TextStim(win=window, text="koniec", height=20)
 
 
 # TRAINING
-show_info(window=window, file_name='instrukcja.txt', insert='')
+show_info(window,'instrukcja.txt', insert='')
 part_of_experiment(N_TRIALS_TRAIN, exp=False, fix=fix)
 
 # EXPERIMENT
-show_info(window, join('.','instrukcja'))
+show_info(window, 'instrukcja.txt', insert='')
 part_of_experiment(N_TRAILS_EXP, exp=True, fix=fix)
 
 # THE END
-show_info(window, join('.','instrukcja'))
+show_info(window,'instrukcja.txt', insert='')
 
 with open("result.csv", "w", newline='') as f:
     write = csv.writer(f)
     write.writerows(RESULTS)
 
-elem = visual.Circle(window, size=(40, 40), fillColor="black", pos=(100, 50))
+
