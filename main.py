@@ -103,7 +103,9 @@ clock = core.Clock()
 
 stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,3)),
         "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,3))}
-circle= visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None)
+circle= {"GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None),
+         "NO GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'dimred', fillColor = None)}
+
 fix = visual.TextStim(win=window, text="+", height=80)
 
 
