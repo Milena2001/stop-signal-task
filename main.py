@@ -76,6 +76,7 @@ def reactions(keys):
 def part_of_experiment(n_trials, exp, fix):
     for i in range(n_trials):
         stim_type = random.choice(list(stim.keys()))
+        circle_type = random.choice(circle())
         fix.draw()
         core.wait(1)
         window.flip()
@@ -83,6 +84,7 @@ def part_of_experiment(n_trials, exp, fix):
         circle.setAutoDraw(True)
         window.flip()
         stim[stim_type].draw()
+        circle[circle_type].draw()
         window.callOnFlip(clock.reset)
         window.flip()
         key = reactions(REACTION_KEYS)
@@ -104,7 +106,7 @@ clock = core.Clock()
 stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,3)),
         "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,3))}
 circle= {"GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None),
-         "NO GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'dimred', fillColor = None)}
+         "NO GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = '#bf1616', fillColor = None)}
 
 fix = visual.TextStim(win=window, text="+", height=80)
 
