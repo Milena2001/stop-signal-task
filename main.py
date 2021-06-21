@@ -11,7 +11,7 @@ from psychopy import visual, event, logging, gui, core
 from itertools import combinations_with_replacement, product
 
 N_TRIALS_TRAIN = 1
-N_TRAILS_EXP = 4
+N_TRAILS_EXP = 2
 REACTION_KEYS = ['left', 'right']
 RESULTS = [["NR", "EXPERIMENT", "ACC", "RT", "TRIAL_TYPE", "REACTION"]]
 
@@ -76,26 +76,26 @@ def reactions(keys):
 def part_of_experiment(n_trials, exp, fix):
     for i in range(n_trials):
         stim_type = random.choice(list(stim.keys()))
-        circle_type = random.choice(circle())
+        circle_type = random.choice(list(circle.keys()))
         fix.draw()
         core.wait(1)
         window.flip()
         core.wait(1)
-        circle.setAutoDraw(True)
+        circle[circle_type].setAutoDraw(True)
         window.flip()
         stim[stim_type].draw()
-        circle[circle_type].draw()
         window.callOnFlip(clock.reset)
         window.flip()
         key = reactions(REACTION_KEYS)
         rt = clock.getTime()
         stim[stim_type].setAutoDraw(False)
         window.flip()
-        circle.setAutoDraw(False)
+        circle[circle_type].setAutoDraw(False)
         window.flip()
         acc = stim_type == key
         RESULTS.append([i+1, exp, acc, rt, stim_type, key])
 
+delay =
 
 window = visual.Window(units="pix", color="gray", fullscr=True)
 window.setMouseVisible(True)
@@ -105,6 +105,7 @@ clock = core.Clock()
 
 stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,3)),
         "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,3))}
+#circle= visual.Circle(window, size=(120, 120), pos=(0,0), lineColor = 'white', fillColor = None)
 circle= {"GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None),
          "NO GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = '#bf1616', fillColor = None)}
 
@@ -125,7 +126,8 @@ part_of_experiment(N_TRIALS_TRAIN, exp=False, fix=fix)
 # EXPERIMENT
 show_info(window, 'czesc eksperymentalna.txt', insert='')
 part_of_experiment(N_TRAILS_EXP, exp=True, fix=fix)
-
+show_info(window,'trening.txt', insert='')
+part_of_experiment(N_TRAILS_EXP, exp=True, fix=fix)
 # THE END
 show_info(window,'instrukcja.txt', insert='')
 
