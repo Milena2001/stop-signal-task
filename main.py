@@ -1,19 +1,20 @@
-import atexit
+"""Importowanie bibliotek"""
 import codecs
 import csv
 import random
 from os.path import join
-from statistics import mean
-
 import yaml
 from psychopy import visual, event, logging, gui, core
-
-from itertools import combinations_with_replacement, product
-
-N_TRIALS_TRAIN = 1
-N_TRAILS_EXP = 2
-REACTION_KEYS = ['left', 'right']
-RESULTS = [["NR", "EXPERIMENT", "ACC", "RT", "TRIAL_TYPE", "REACTION"]]
+conf = yaml.load(open("config.yaml", encoding="utf-8")) #wywolywanie zmiennych z pliku konfiguracyjnego
+"""Utworzenie funkcji"""
+def save_data():
+    """
+    Zapisywanie zebranych danych do pliku csv.
+    :return:
+    """
+    with open(join('results', datafile), "w", newline='') as df:
+        write = csv.writer(df)
+        write.writerows(conf["RESULTS"])
 
 def read_text_from_file(file_name, insert=''):
     """
@@ -44,7 +45,7 @@ def abort_with_error(err):
     logging.critical(err)
     raise Exception(err)
 
-def show_info(window, file_name, insert=''):
+def show_info(window, file_name, insert='', key ='escape'):
     """
     Clear way to show info message into screen.
     :param win:
@@ -55,10 +56,10 @@ def show_info(window, file_name, insert=''):
                           height=20)
     msg.draw()
     window.flip()
-    key = event.waitKeys(keyList=['f7', 'return', 'space', 'left', 'right'])
-    if key == ['f7']:
+    key = event.waitKeys(keyList=['escape', 'return', 'space', 'left', 'right'])
+    if key == ['escape']:
         abort_with_error(
-            'Experiment finished by user on info screen! F7 pressed.')
+            'Experiment finished by user on info screen! Esc pressed.')
     window.flip()
 
 def reactions(keys):
@@ -66,73 +67,98 @@ def reactions(keys):
     key = event.waitKeys(keyList=keys)
     return key[0]
 
-
-# def show_text(win, info, wait_key=["space"]):
-#     info.draw()
-#     win.flip()
-#     reactions(wait_key)
-
+def check_exit(key='escape'):
+    """
+    Check (during procedure) if experimentator doesn't want to terminate.
+    """
+    stop = event.getKeys(keyList=[key])
+    if stop:
+        abort_with_error(
+            'Experiment finished by user! {} pressed.'.format(key))
 
 def part_of_experiment(n_trials, exp, fix):
+    """Główna funkcja odpowiadająca za wyświetlanie bodźców i zbieranie reakcji"""
+    fix.draw()  # Rysowanie punktu fiksacyjnego
+    core.wait(1)
+    window.flip()  # Wyswietlenie punktu fiksacyjnego
+    core.wait(1)
     for i in range(n_trials):
-        stim_type = random.choice(list(stim.keys()))
-        circle_type = random.choice(list(circle.keys()))
-        fix.draw()
-        core.wait(1)
-        window.flip()
-        core.wait(1)
-        circle[circle_type].setAutoDraw(True)
-        window.flip()
-        stim[stim_type].draw()
+        stim_type = random.choice(list(stim.keys())) #Losowanie typu bodźca, czyli kierunku wyświetlania strzałki
+        circle_type = random.choice(list(circle.keys())) #Losowanie koloru okregu
+        stim[stim_type].setAutoDraw(True)  # Rysowanie strzalki
+        window.flip()  # Wyswietlenie strzalki
+        circle[circle_type].draw() 
         window.callOnFlip(clock.reset)
-        window.flip()
-        key = reactions(REACTION_KEYS)
-        rt = clock.getTime()
-        stim[stim_type].setAutoDraw(False)
-        window.flip()
-        circle[circle_type].setAutoDraw(False)
-        window.flip()
-        acc = stim_type == key
-        RESULTS.append([i+1, exp, acc, rt, stim_type, key])
+        window.flip()  # Wyswietlenie strzalki w okregu
+        if circle == "GO": 
+            key = reactions(conf["REACTION_KEYS"])  # Czekanie na wcisniecie klawisza
+            rt = clock.getTime()
+            acc = "GO"
+        else:
+            acc = "NO GO"
+            while True:
+                if len(event.getKeys()) > 0 and acc and conf["STOP_TIME"] < conf["LIM_MAX"]:
+                    rt = clock.getTime()
+                    conf["STOP_TIME"] += 0.5
+                    key = "PRESSED"
+                    break
+                if clock.getTime() > conf["STOP_TIME"] > conf["LIM_MIN"] and acc:
+                    rt = clock.getTime()
+                    conf["STOP_TIME"] -= 0.5
+                    key = "NOT PRESSED"
+                    break
 
-delay =
+            stim[stim_type].setAutoDraw(False)
+        conf["RESULTS"].append([ID, exp, acc, rt, stim_type, key])
 
-window = visual.Window(units="pix", color="gray", fullscr=True)
-window.setMouseVisible(True)
-mouse= event.Mouse (visible = True)
+# ustawienia okna procedury
+window = visual.Window(color="gray", units="pix", fullscr=False)
+window.setMouseVisible(False)
+mouse = event.Mouse(visible=True)
 
 clock = core.Clock()
-
-stim = {"left": visual.TextStim(win=window, text="←", height=120,bold=True, pos=(0,3)),
-        "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0,3))}
-#circle= visual.Circle(window, size=(120, 120), pos=(0,0), lineColor = 'white', fillColor = None)
-circle= {"GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = 'white', fillColor = None),
-         "NO GO": visual.Circle(window, size=(130, 130), pos=(0,-8), lineColor = '#bf1616', fillColor = None)}
-
+#Tworzenie bodźca GO - strzałki
+stim = {"left": visual.TextStim(win=window, text="←", height=120, bold=True, pos=(0, 3)),
+        "right": visual.TextStim(win=window, text="→", height=120, bold=True, pos=(0, 3))}
+#Tworzenie sygnału STOP i neutralnego bodźca - okrąg czerwony i biały
+circle = {"GO": visual.Circle(window, size=(130, 130), pos=(0, -8), lineColor='white', fillColor=None),
+          "NO GO": visual.Circle(window, size=(130, 130), pos=(0, -8), lineColor='#bf1616', fillColor=None)}
+#Tworzenie punktu fiksacyjnego
 fix = visual.TextStim(win=window, text="+", height=80)
 
+# Okno dialogowe zbierające informacje o uczestniku
+info = {'ID': '', 'PLEC': ['M', 'K'], 'WIEK': ''}
+dlg = gui.DlgFromDict(info, title='Wpisz swoje dane')
+if not dlg.OK:
+    print("User exited")
+    core.quit()
 
-#inst1 = visual.TextStim(win=window, text="instrukcja", height=20)
-#inst2 = visual.TextStim(win=window, text="teraz eksperyment", height=20)
-#inst_end = visual.TextStim(win=window, text="koniec", height=20)
+# Ogólne ID badanych zlozone z informacji podanych w oknie dialogowym
+ID = info['ID'] + info['PLEC'] + info['WIEK']
 
-#POCZĄTKOWE INFORMACJE
-show_info(window, 'instrukcja ogólna.txt', insert ='')
+# Tworzenie nazwy pliku csv z wynikami badanego
+datafile = '{}.csv'.format(ID)
 
-# TRAINING
-show_info(window,'trening.txt', insert='')
-part_of_experiment(N_TRIALS_TRAIN, exp=False, fix=fix)
+# POCZĄTKOWE INFORMACJE
+show_info(window, 'instrukcja ogólna.txt', insert='', key='escape')
 
-# EXPERIMENT
-show_info(window, 'czesc eksperymentalna.txt', insert='')
-part_of_experiment(N_TRAILS_EXP, exp=True, fix=fix)
-show_info(window,'trening.txt', insert='')
-part_of_experiment(N_TRAILS_EXP, exp=True, fix=fix)
-# THE END
-show_info(window,'instrukcja.txt', insert='')
+# Informacja przed treningiem
+show_info(window, 'trening.txt', insert='', key='escape')
 
-with open("result.csv", "w", newline='') as f:
-    write = csv.writer(f)
-    write.writerows(RESULTS)
+# Część trenigowa
+part_of_experiment(conf["N_TRIALS_TRAIN"], exp=False, fix=fix)
+
+# Informacja przed pierwszą częścią eksperymentalną
+show_info(window, 'czesc eksperymentalna.txt', insert='', key='escape')
+# Pierwsza część eksperymentalna
+part_of_experiment(conf["N_TRAILS_EXP"], exp=True, fix=fix)
+# Informacja o przerwie
+show_info(window, 'przerwa.txt', insert='', key='escape')
+# Druga część eksperymentalna
+part_of_experiment(conf["N_TRAILS_EXP"], exp=True, fix=fix)
+#Zapisywanie wyników do pliku .csv
+save_data()
+# Koniec procedury
+show_info(window, 'koniec.txt', insert='', key='escape')
 
 
